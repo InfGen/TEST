@@ -74,7 +74,7 @@ Name=XFCE Panel
 Exec=/usr/bin/xfce4-panel
 OnlyShowIn=XFCE;
 EOF
-    chown -R agent:agent /home/agent/.config/autostart
+RUN chown -R agent:agent /home/agent/.config/autostart
 
 RUN cat > /etc/supervisord.conf << 'EOF'
 [supervisord]

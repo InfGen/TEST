@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  aios-vnc:
+    build:
+      context: .
+      dockerfile: Dockerfile.vnc
+    container_name: aios-desktop-vnc
+    ports:
+      - "6080:6080"  # noVNC (Web browser)
+      - "5900:5900"  # Traditional VNC (optional)
+    environment:
+      - DISPLAY=:0
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - aios-workspace:/home/agent/workspace
+
+volumes:
+  aios-workspace:
+    driver: local

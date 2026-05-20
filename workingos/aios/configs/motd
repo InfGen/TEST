@@ -1,0 +1,16 @@
+[1;36m
+   █████╗ ██╗    ██╗ █████╗ ███████╗
+  ██╔══██╗██║    ██║██╔══██╗██╔════╝
+  ███████║██║ █╗ ██║███████║███████╗
+  ██╔══██║██║███╗██║██╔══██║╚════██║
+  ██║  ██║╚███╔███╔╝██║  ██║███████║
+  ╚═╝  ╚═╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝
+[0;35m          Agentic Intelligence OS v0.1
+[1;32m────────────────────────────────────────────────────
+[0;37mOptimized for autonomous AI agents | Built on Alpine Linux
+[1;33m• Minimal • Lightning Fast • Tool-Native • Headless-First
+[0;36m
+Welcome, Agent. Your environment is primed for intelligence.
+Available tools: curl, git, python, jq, starship, fastfetch, and more.
+Type 'aios-help' for agent commands.
+[0m

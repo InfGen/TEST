@@ -1,0 +1,188 @@
+FROM alpine:edge
+
+# AIOS Desktop v0.3 - Enhanced with Notepad, Thunar, NetworkManager, rich context menus
+LABEL org.opencontainers.image.title="AIOS Desktop"
+LABEL org.opencontainers.image.description="Agentic OS with XFCE + Notepad, Thunar File Explorer, WiFi, rich right-click menus"
+LABEL org.opencontainers.image.version="0.3-enhanced"
+
+RUN apk add --no-cache \
+    alpine-base \
+    # Agent CLI tools
+    zsh curl wget git jq yq-go python3 py3-pip py3-virtualenv uv \
+    build-base linux-headers neovim htop btop ripgrep fd fzf bat eza starship fastfetch \
+    ca-certificates tzdata openssh sudo \
+    # Desktop + Enhancements
+    xfce4 xfce4-goodies xfce4-terminal xfce4-panel \
+    lightdm lightdm-gtk-greeter \
+    # File Explorer (Thunar) + plugins
+    thunar thunar-archive-plugin thunar-volman thunar-media-tags-plugin tumbler \
+    # Notepad
+    mousepad \
+    # Network / Real WiFi + Ethernet
+    networkmanager network-manager-applet wpa_supplicant \
+    # Nice look & feel
+    adwaita-icon-theme papirus-icon-theme \
+    gnome-themes-extra \
+    font-noto font-dejavu ttf-font-awesome \
+    # GUI tools
+    firefox geany ristretto \
+    mesa xorg-server xinit \
+    && rm -rf /var/cache/apk/*
+
+# User setup
+RUN adduser -D -s /bin/zsh -h /home/agent -G wheel agent && \
+    echo "agent ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/agent && \
+    mkdir -p /home/agent/.config /etc/aios /var/log/aios /home/agent/Desktop
+
+# Base AIOS files
+COPY motd /etc/motd
+COPY aios-help /usr/local/bin/aios-help
+RUN chmod +x /usr/local/bin/aios-help
+
+# Starship prompt
+RUN mkdir -p /root/.config /home/agent/.config && \
+    cat > /root/.config/starship.toml << 'EOF'
+format = """$os$username$hostname$directory$git_branch$git_status$cmd_duration$character"""
+[os]
+style = "bold magenta"
+format = "[🜁 AIOS-Desktop ](bold magenta)"
+[character]
+success_symbol = "[➤](bold green)"
+error_symbol = "[✗](bold red)"
+EOF
+RUN cp -a /root/.config/. /home/agent/.config/ && chown -R agent:agent /home/agent
+
+# Enhanced fastfetch
+RUN mkdir -p /root/.config/fastfetch /home/agent/.config/fastfetch && \
+    cat > /root/.config/fastfetch/config.jsonc << 'EOF'
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "type": "raw",
+    "source": "   \u001b[36m█████╗ ██╗    ██╗ █████╗ ███████╗\u001b[0m\n        \u001b[35mAIOS Desktop v0.3 - Fully Featured\u001b[0m"
+  },
+  "modules": [
+    "title", "separator", "os", "host", "kernel", "uptime", "packages", "shell",
+    { "type": "command", "key": "Desktop", "text": "XFCE + Thunar + Mousepad + NetworkManager" },
+    "separator", "cpu", "memory", "disk", "separator", "colors"
+  ]
+}
+EOF
+RUN cp /root/.config/fastfetch/config.jsonc /home/agent/.config/fastfetch/
+
+# AIOS environment + aliases
+RUN cat > /etc/profile.d/aios.sh << 'EOF'
+#!/bin/sh
+export PATH="$PATH:/usr/local/bin"
+export PYTHONUNBUFFERED=1
+export AGENT_MODE=true
+export AIOS_VERSION="0.3-desktop-enhanced"
+
+alias help="aios-help"
+alias status="agent-status"
+alias notepad="mousepad"
+alias explore="thunar"
+
+echo -e "\033[1;36mAIOS Desktop Enhanced - Notepad, Thunar, WiFi Ready\033[0m"
+fastfetch 2>/dev/null || true
+cat /etc/motd
+EOF
+
+# LightDM autologin
+RUN mkdir -p /etc/lightdm && cat > /etc/lightdm/lightdm.conf << 'EOF'
+[Seat:*]
+autologin-user=agent
+autologin-session=xfce
+greeter-session=lightdm-gtk-greeter
+EOF
+
+# XFCE + Thunar configuration
+RUN mkdir -p /home/agent/.config/xfce4/xfconf/xfce-perchannel-xml \
+    /home/agent/.config/Thunar \
+    /home/agent/.config/autostart \
+    /home/agent/.local/share/Thunar/uca.xml
+
+# Dark theme
+RUN cat > /home/agent/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xsettings" version="1.0">
+  <property name="Net" type="empty">
+    <property name="ThemeName" type="string" value="Adwaita-dark"/>
+    <property name="IconThemeName" type="string" value="Papirus-Dark"/>
+    <property name="FontName" type="string" value="Noto Sans 10"/>
+  </property>
+</channel>
+EOF
+
+# Rich Right-Click Context Menu for Thunar (very useful for agents)
+RUN cat > /home/agent/.config/Thunar/uca.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+  <action>
+    <icon>utilities-terminal</icon>
+    <name>Open Terminal Here</name>
+    <submenu>Tools</submenu>
+    <command>xfce4-terminal --default-directory=%f</command>
+    <description>Open terminal in this directory</description>
+    <range/>
+    <patterns>*</patterns>
+    <directories/>
+  </action>
+  <action>
+    <icon>accessories-text-editor</icon>
+    <name>New Text File</name>
+    <command>touch %f/"New File.txt" && mousepad %f/"New File.txt"</command>
+    <description>Create new text file and open notepad</description>
+    <range/>
+    <patterns>*</patterns>
+    <directories/>
+  </action>
+  <action>
+    <icon>mousepad</icon>
+    <name>Open with Notepad</name>
+    <command>mousepad %f</command>
+    <description>Open selected file in Mousepad (Notepad)</description>
+    <range/>
+    <patterns>*.txt;*.py;*.sh;*.md;*.json;*.yml</patterns>
+    <text-files/>
+  </action>
+  <action>
+    <icon>git</icon>
+    <name>Git Pull</name>
+    <command>xfce4-terminal -e "git pull && echo 'Press Enter to close...' && read"</command>
+    <description>Run git pull in this directory</description>
+    <range/>
+    <patterns>*</patterns>
+    <directories/>
+  </action>
+</actions>
+EOF
+
+# Autostart items: nm-applet (WiFi tray), welcome terminal
+RUN cat > /home/agent/.config/autostart/nm-applet.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=Network Manager Applet
+Exec=nm-applet --indicator
+Hidden=false
+X-GNOME-Autostart-enabled=true
+EOF
+
+RUN cat > /home/agent/.config/autostart/aios-welcome.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=AIOS Agent Terminal
+Exec=xfce4-terminal --command="fastfetch && cat /etc/motd && zsh" --title="🤖 AIOS Agent"
+Hidden=false
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Enable NetworkManager
+RUN rc-update add NetworkManager && rc-update add wpa_supplicant
+
+# Fix permissions
+RUN chown -R agent:agent /home/agent && \
+    chmod +x /home/agent/.config/autostart/*.desktop
+
+# Entry point
+CMD ["/usr/bin/lightdm"]

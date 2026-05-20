@@ -1,0 +1,119 @@
+FROM alpine:edge
+
+LABEL org.opencontainers.image.title="AIOS Desktop VNC - Windows 10 Theme"
+LABEL org.opencontainers.image.description="AIOS Desktop themed like Windows 10"
+LABEL org.opencontainers.image.version="0.6-win10-panel-fixed"
+
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
+
+RUN apk add --no-cache \
+    alpine-base \
+    supervisor \
+    dbus \
+    xvfb \
+    x11vnc \
+    tigervnc \
+    novnc \
+    websockify \
+    xfce4 \
+    xfce4-terminal \
+    xfce4-whiskermenu-plugin \
+    thunar \
+    thunar-archive-plugin \
+    thunar-volman \
+    tumbler \
+    mousepad \
+    networkmanager \
+    network-manager-applet \
+    adwaita-icon-theme \
+    papirus-icon-theme \
+    font-noto \
+    font-dejavu \
+    sudo \
+    zsh \
+    curl \
+    git \
+    jq \
+    python3 \
+    py3-pip \
+    py3-virtualenv \
+    starship \
+    fastfetch \
+    && rm -rf /var/cache/apk/*
+
+RUN addgroup -S agent && \
+    adduser -S -G agent -h /home/agent -s /bin/zsh agent && \
+    echo "agent ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/agent && \
+    mkdir -p /home/agent/.config /home/agent/Desktop /var/log/supervisor /run/dbus && \
+    chown -R agent:agent /home/agent
+
+COPY motd /etc/motd
+COPY aios-help /usr/local/bin/aios-help
+COPY setup-panel.sh /usr/local/bin/setup-panel.sh
+RUN chmod +x /usr/local/bin/aios-help /usr/local/bin/setup-panel.sh
+
+# Run panel setup as agent
+RUN su - agent -c "/usr/local/bin/setup-panel.sh"
+
+# Windows 10 Theming
+RUN cat > /home/agent/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xsettings" version="1.0">
+  <property name="Net" type="empty">
+    <property name="ThemeName" type="string" value="Adwaita-dark"/>
+    <property name="IconThemeName" type="string" value="Papirus-Dark"/>
+    <property name="FontName" type="string" value="Noto Sans 10"/>
+  </property>
+</channel>
+EOF
+
+RUN cat > /etc/supervisord.conf << 'EOF'
+[supervisord]
+nodaemon=true
+logfile=/var/log/supervisor/supervisord.log
+pidfile=/var/run/supervisord.pid
+
+[program:xvfb]
+command=Xvfb :0 -screen 0 1280x800x24 -ac -nolisten tcp +extension RANDR
+priority=1
+autorestart=true
+
+[program:desktop]
+command=dbus-run-session startxfce4
+environment=DISPLAY=:0,HOME=/home/agent,USER=agent
+user=agent
+priority=2
+autorestart=true
+
+[program:vnc]
+command=x11vnc -display :0 -forever -nopw -rfbport 5900 -shared -repeat
+user=agent
+priority=3
+autorestart=true
+
+[program:novnc]
+command=websockify --web=/usr/share/novnc/ 6080 localhost:5900
+priority=4
+autorestart=true
+EOF
+
+RUN chown -R agent:agent /home/agent /etc/supervisord.conf
+
+RUN cat > /etc/profile.d/aios.sh << 'EOF'
+export PATH="$PATH:/usr/local/bin"
+export PYTHONUNBUFFERED=1
+export AGENT_MODE=true
+export AIOS_VERSION="0.6-win10"
+alias notepad="mousepad"
+alias explore="thunar"
+alias help="aios-help"
+echo -e "\033[1;34m══════════════════════════════════════"
+echo -e "       🤖 AIOS Desktop (Windows 10 Style)"
+echo -e "══════════════════════════════════════\033[0m"
+fastfetch
+cat /etc/motd
+EOF
+
+EXPOSE 6080 5900
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]

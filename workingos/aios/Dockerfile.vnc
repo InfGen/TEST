@@ -18,6 +18,8 @@ RUN apk add --no-cache \
     xfce4 \
     xfce4-terminal \
     xfce4-whiskermenu-plugin \
+    xfce4-pulseaudio-plugin \
+    xfce4-notifyd \
     thunar \
     thunar-archive-plugin \
     thunar-volman \
@@ -52,20 +54,8 @@ COPY aios-help /usr/local/bin/aios-help
 COPY setup-panel.sh /usr/local/bin/setup-panel.sh
 RUN chmod +x /usr/local/bin/aios-help /usr/local/bin/setup-panel.sh
 
-# Run panel setup as agent
-RUN su - agent -c "/usr/local/bin/setup-panel.sh"
-
-# Windows 10 Theming
-RUN cat > /home/agent/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<channel name="xsettings" version="1.0">
-  <property name="Net" type="empty">
-    <property name="ThemeName" type="string" value="Adwaita-dark"/>
-    <property name="IconThemeName" type="string" value="Papirus-Dark"/>
-    <property name="FontName" type="string" value="Noto Sans 10"/>
-  </property>
-</channel>
-EOF
+# Run panel setup as root
+RUN /usr/local/bin/setup-panel.sh
 
 RUN cat > /etc/supervisord.conf << 'EOF'
 [supervisord]

@@ -25,12 +25,52 @@ cat > /home/agent/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml << 'E
       <value type="int" value="4"/>
       <value type="int" value="5"/>
       <value type="int" value="6"/>
+      <value type="int" value="7"/>
+      <value type="int" value="8"/>
+      <value type="int" value="9"/>
+      <value type="int" value="10"/>
+      <value type="int" value="11"/>
+    </property>
+  </property>
+  <property name="plugins" type="empty">
+    <property name="plugin-1" type="empty">
+      <property name="name" type="string" value="whiskermenu"/>
+    </property>
+    <property name="plugin-2" type="empty">
+      <property name="name" type="string" value="launcher"/>
+    </property>
+    <property name="plugin-3" type="empty">
+      <property name="name" type="string" value="launcher"/>
+    </property>
+    <property name="plugin-4" type="empty">
+      <property name="name" type="string" value="launcher"/>
+    </property>
+    <property name="plugin-5" type="empty">
+      <property name="name" type="string" value="launcher"/>
+    </property>
+    <property name="plugin-6" type="empty">
+      <property name="name" type="string" value="separator"/>
+    </property>
+    <property name="plugin-7" type="empty">
+      <property name="name" type="string" value="tasklist"/>
+    </property>
+    <property name="plugin-8" type="empty">
+      <property name="name" type="string" value="separator"/>
+    </property>
+    <property name="plugin-9" type="empty">
+      <property name="name" type="string" value="systray"/>
+    </property>
+    <property name="plugin-10" type="empty">
+      <property name="name" type="string" value="separator"/>
+    </property>
+    <property name="plugin-11" type="empty">
+      <property name="name" type="string" value="clock"/>
     </property>
   </property>
 </channel>
 EOF
 
-# Whisker Menu (Start button)
+# 1: Whisker Menu (Start button)
 cat > /home/agent/.config/xfce4/panel/whiskermenu-1.rc << 'EOF'
 [whiskermenu]
 button-title=Start
@@ -40,8 +80,39 @@ show-recent=true
 icon-size=3
 EOF
 
-# Tasklist (window buttons)
-cat > /home/agent/.config/xfce4/panel/tasklist-2.rc << 'EOF'
+# 2: Firefox Launcher
+cat > /home/agent/.config/xfce4/panel/launcher-2.rc << 'EOF'
+[launcher]
+items=/usr/share/applications/firefox.desktop
+EOF
+
+# 3: Thunar Launcher
+cat > /home/agent/.config/xfce4/panel/launcher-3.rc << 'EOF'
+[launcher]
+items=/usr/share/applications/thunar.desktop
+EOF
+
+# 4: Terminal Launcher
+cat > /home/agent/.config/xfce4/panel/launcher-4.rc << 'EOF'
+[launcher]
+items=/usr/share/applications/xfce4-terminal.desktop
+EOF
+
+# 5: Mousepad Launcher
+cat > /home/agent/.config/xfce4/panel/launcher-5.rc << 'EOF'
+[launcher]
+items=/usr/share/applications/mousepad.desktop
+EOF
+
+# 6: Separator
+cat > /home/agent/.config/xfce4/panel/separator-6.rc << 'EOF'
+[separator]
+style=0
+expand=false
+EOF
+
+# 7: Tasklist (window buttons)
+cat > /home/agent/.config/xfce4/panel/tasklist-7.rc << 'EOF'
 [tasklist]
 grouping=0
 show-labels=true
@@ -50,17 +121,25 @@ show-handle=false
 middle-click=close
 EOF
 
-# Separator
-touch /home/agent/.config/xfce4/panel/separator-3.rc
+# 8: Separator (Expanding to push items to the right)
+cat > /home/agent/.config/xfce4/panel/separator-8.rc << 'EOF'
+[separator]
+style=0
+expand=true
+EOF
 
-# Systray
-touch /home/agent/.config/xfce4/panel/systray-4.rc
+# 9: Systray
+touch /home/agent/.config/xfce4/panel/systray-9.rc
 
-# Separator
-touch /home/agent/.config/xfce4/panel/separator-5.rc
+# 10: Separator
+cat > /home/agent/.config/xfce4/panel/separator-10.rc << 'EOF'
+[separator]
+style=0
+expand=false
+EOF
 
-# Clock
-cat > /home/agent/.config/xfce4/panel/clock-6.rc << 'EOF'
+# 11: Clock
+cat > /home/agent/.config/xfce4/panel/clock-11.rc << 'EOF'
 [clock]
 mode=0
 show-frame=true

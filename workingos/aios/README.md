@@ -12,7 +12,7 @@ chmod +x run-vnc.sh
 
 This script will:
 1. Check for Docker
-2. Build the full AIOS Desktop (XFCE + Notepad + Thunar + rich context menus + real NetworkManager)
+2. Build the full AIOS Desktop (XFCE + Firefox + Notepad + Thunar + Windows 10 taskbar)
 3. Start VNC + noVNC
 4. Show you the exact URLs to open
 
@@ -22,8 +22,10 @@ This script will:
 You will have full mouse + keyboard control over the AIOS desktop.
 
 ### Features Recap
+- **Web Browser**: Firefox pre-installed and pinned to taskbar
 - **Notepad**: Mousepad with right-click integration
 - **File Explorer**: Thunar with custom context menu (Terminal here, New File, Git, etc.)
+- **Windows 10 Taskbar**: Bottom-positioned with pinned shortcuts for quick access
 - **WiFi/Internet**: Full NetworkManager with tray applet (real connecting)
 - Dark modern theme, agent tools, autostart welcome terminal
 - Persistent workspace at `./workspace` on your machine

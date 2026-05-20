@@ -31,6 +31,7 @@ RUN apk add --no-cache \
     papirus-icon-theme \
     font-noto \
     font-dejavu \
+    firefox \
     sudo \
     zsh \
     curl \
@@ -66,14 +67,16 @@ RUN su - agent -c "xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/w
     su - agent -c "xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitor0/screen-mode -s 0" 2>/dev/null || true
 
 # Create autostart entry to ensure panel config is applied on every session start
-RUN mkdir -p /home/agent/.config/autostart && \
-    cat > /home/agent/.config/autostart/xfce4-panel.desktop << 'EOF'
+RUN mkdir -p /home/agent/.config/autostart
+
+RUN cat > /home/agent/.config/autostart/xfce4-panel.desktop << 'EOF'
 [Desktop Entry]
 Type=Application
 Name=XFCE Panel
 Exec=/usr/bin/xfce4-panel
 OnlyShowIn=XFCE;
 EOF
+
 RUN chown -R agent:agent /home/agent/.config/autostart
 
 RUN cat > /etc/supervisord.conf << 'EOF'
